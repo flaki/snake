@@ -1,0 +1,15 @@
+{
+  "name": "tessel-snake",
+  "version": "0.0.1",
+  "description": "The single most adaptive and progressively-enhancing snake game you ever came across!",
+  "main": "tessel-snake.js",
+  "dependencies": {
+    "es6-promise": "^2.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Flaki",
+  "license": "ISC"
+}
