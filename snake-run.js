@@ -13,7 +13,7 @@ var idxAt = S.idxAt,
 
   // Constants
   DPAD = S.DPAD,
-  MAPOBJ = S.MAPOBJ
+  MAPOBJ = S.MAPOBJ,
   MAP_W = S.MAP_W,
   MAP_H = S.MAP_H,
   MAP_SIZE = S.MAP_SIZE;
@@ -79,6 +79,35 @@ catch (e) {
 }
 
 
+/* Replace Math.random with a better PRNG
+ */
+var RND = (function() {
+  var buffer, i,
+    BUFFER_SIZE = 512;
+
+  /* Returns a pseudo-random byte (0-255)
+   * by specifying <max>, returned value is between 0-<max>
+   * (due to the resolution of the values, your max should be <= 255)
+   */
+  function next(max) {
+    if (i>BUFFER_SIZE) reset();
+
+    return max ? buffer[i++]/256*(max+1) | 0 : buffer[i++];
+  }
+
+  /* Generate a new batch of pseudo-random bytes */
+  function reset() {
+    buffer = require('crypto').pseudoRandomBytes(BUFFER_SIZE);
+    i = 0;
+  }
+
+  // Initialize
+  reset();
+
+  return { next: next, reset: reset };
+})();
+
+
 function init() {
 }
 
@@ -98,20 +127,22 @@ function init() {
  *
  */
 function start(settings) {
+  var i;
+
   // TODO: handle settings (speed, bonuses, mazes)
 
   // Create new empty game map
   Map = new Array(MAP_SIZE);
 
   // Make sure map is fully empty
-  for (var i=0;i<MAP_SIZE;++i) Map[i] = MAPOBJ.EMPTY;
+  for (i=0;i<MAP_SIZE;++i) Map[i] = MAPOBJ.EMPTY;
 
   // Position snake on the center of the game map
   Head = MAP_W*(MAP_H >> 1) + (MAP_W >> 1);
 
   // Snake starts left-facing with an inital length of 5 blocks
   // extending to the right
-  var i=0;
+  i=0;
   while (i<5) {
     // Add left-facing snake bodypart
     Map[Head + i] = MAPOBJ.SNAKE_L;
@@ -218,7 +249,7 @@ function placeItem(itemType) {
   switch (itemType) {
     case MAPOBJ.FOOD:
       // Initial random location
-      var idx = Math.floor(MAP_SIZE*Math.random());
+      var idx = RND.next(MAP_SIZE);
 
       // Find an empty block
       // be sure to avoid inf. loop and bail map is full
@@ -360,7 +391,7 @@ function defaultInput(Map, w,h, headIdx,tailIdx) {
 
   // Dumb: stay, turn left or turn right
   var dir = Map[headIdx];
-  var whatToDo = (Math.random() * 10)|0;
+  var whatToDo = RND.next(10);
   var turn = whatToDo < 2 ? -1 : (whatToDo > 7 ? 1 : 0);
 
   dir = turnTo(turn, dir);
@@ -377,7 +408,7 @@ function defaultInput(Map, w,h, headIdx,tailIdx) {
   // A wee bit smarter - deliberately try & avoid crashing into self/wall
   // 47 === (SNAKE_L|SNAKE_R|SNAKE_U|SNAKE_D|WALL)
   if (Map[ idxAt(headIdx, dir) ] & 47) {
-    whatToDo = Math.random() < 0.5 ? -1 : 1;
+    whatToDo = RND.next(1) ? 1 : -1;
 
     // Look turning into one direction
     dir = turnTo(whatToDo, Map[headIdx]);
