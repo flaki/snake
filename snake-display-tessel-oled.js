@@ -592,26 +592,17 @@ var Display = (function() {
 
 		// 1px width/height must be special-cased
 		} else if ((width > 0 && height > 0)) {
-			if (height === width) {
-				buf = new Buffer(2+4);
-				i = 0;
 
+			// Draw a single pixel (width === height = 1)
+			if (height === width) {
 				buf.writeUInt8('D'.charCodeAt(), i++);
 				buf.writeUInt8('P'.charCodeAt(), i++);
 
 				buf.writeUInt8(x, i++);
 				buf.writeUInt8(y, i++);
 
-				// Padding
-				buf.writeUInt8(0, i++);
-				buf.writeUInt8(0, i++);
-
-				write(buf);
-
+			// Draw horizontal/vertical line
 			} else {
-				buf = new Buffer(2+4);
-				i = 0;
-
 				buf.writeUInt8('L'.charCodeAt(), i++);
 				buf.writeUInt8('N'.charCodeAt(), i++);
 
@@ -621,10 +612,6 @@ var Display = (function() {
 				// API uses x2,y2 coords
 				buf.writeUInt8(x + width - 1, i++);
 				buf.writeUInt8(y + height - 1, i++);
-
-				//console.log(x,x+width-1 ,'|', y,y+height-1);
-
-				write(buf);
 			}
 		}
 
@@ -751,7 +738,8 @@ exports.init = function() {
 };
 
 
-var BS = 5;
+var BS = 2;
+var BUFFERED = true;
 
 exports.update1x1 = function(Map, w,h, headIdx,tailIdx) {
 	// GUI
@@ -780,8 +768,9 @@ exports.update = function(Map, w,h, headIdx,tailIdx) {
 	OLED.text('HEAD: ', 'tiny', 80,64, false);
 	OLED.text(headIdx, 'tiny', 100,64, false);
 
-
-	OLED.buffer();
+	// Buffer drawing commands in order to avoid display channel latency
+	// which would result in screen flicker.
+	if (BUFFERED) OLED.buffer();
 
 	// Play area
 	OLED.drawRect(0,0, BS*w + 2, BS*h + 2);
@@ -790,8 +779,10 @@ exports.update = function(Map, w,h, headIdx,tailIdx) {
 	// Draw game area
 	Map.forEach(function(t, idx) {
 		if (t) {
-			OLED.drawRect(1 + BS* (idx % w), 1 + BS* (idx / w | 0) ,BS-1, BS-1);
+			OLED.drawRect(1 + BS* (idx % w), 1 + BS* (idx / w | 0) ,BS-1||1, BS-1||1);
 		}
 	});
-	OLED.showBuffer();
+
+	// Display buffer
+	if (BUFFERED) OLED.showBuffer();
 };
