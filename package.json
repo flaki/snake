@@ -4,6 +4,7 @@
   "description": "The single most adaptive and progressively-enhancing snake game you ever came across!",
   "main": "tessel-snake.js",
   "dependencies": {
+    "accel-mma84": "^0.2.4",
     "es6-promise": "^2.0.1"
   },
   "devDependencies": {},

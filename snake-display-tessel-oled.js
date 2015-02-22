@@ -352,19 +352,19 @@ var Display = (function() {
 
 		// Clear
 		write('CL\0');
-		console.log('Screen cleared');
+		console.log('[OLED] screen cleared');
 
 		// Upgrade to high-speed uart
 		if (options.highSpeed) {
 			ready = new Promise(function (resolve, reject) {
 				// Request baudrate upgrade
 				setTimeout(function () {
-					console.log('Requested baudrate: '+BR_HIGHSPEED);
+					console.log('[OLED] requested UART high-speed baudrate: '+BR_HIGHSPEED);
 					write('SB'+BR_HIGHSPEED+'\0');
 
 					// Upgrade baudrate on UART connection
 					setTimeout(function () {
-						console.log('Upgraded connection baudrate: '+BR_HIGHSPEED);
+						console.log('[OLED] upgraded UART baudrate: '+BR_HIGHSPEED);
 						UART.setBaudRate(BR_HIGHSPEED);
 
 						setTimeout(resolve, 0);
@@ -738,7 +738,7 @@ exports.init = function() {
 
 		// Starting init/demo session
 		.then(function() {
-			console.log("Begin display test...");
+			console.log("[OLED] display starting up...");
 
 		})
 
@@ -750,6 +750,7 @@ exports.init = function() {
 
 			OLED.logoTessel(64, 38, true);
 
+			console.log('[OLED] powered by Tessel');
 			return wait(1000);
 
 		// Show Author splash screen
@@ -761,12 +762,14 @@ exports.init = function() {
 
 			OLED.displayLogo({ label:'TWITTER', w: 40, h:40 }, 68, 36, true);
 
+			console.log('[OLED] created by @slsoftworks');
 			return wait(1000);
 
 		// Renderer
 		}).then(function () {
 			OLED.clear();
 
+			console.log('[OLED] initialized');
 			return exports.update;
 
 		// Failed to initialize

@@ -13,28 +13,50 @@ function wait(delay) {
 	}));
 }
 
-var Main = function() {
+
+
+var main = function() {
 	var snake = require('./snake-run.js');
+	var mods = [];
 
 	console.log('Starting tessel-snake...');
 
-	// Load OLED Display module-
-	require('./snake-display-tessel-oled.js')
+	// Load Tessel-OLED display module
+	mods.push(
 
 		// Initialize
-		.init()
+		require('./snake-display-tessel-oled.js').init()
 
 		// Push module as an output
-		.then(function(renderer) {
+		.then(function(display) {
 			// This is a render module
-			if (typeof renderer === 'function') {
-				snake.setDisplay(renderer);
+			if (typeof display === 'function') {
+				snake.setDisplay(display);
+				console.log('[snake-display-tessel-oled] READY');
 			} else {
-				console.log('Renderer failed to init:', renderer);
+				console.log('Display-module failed to init:', display);
 			}
+		})
+	);
 
-		// Aaaand LIFTOFF!
-		}).then(function(renderer) {
+	// Load Tessel-Accelerometer input-module
+	mods.push(
+		require('./snake-input-tessel-accel.js').init()
+
+		.then(function(input) {
+			// This is a render module
+			if (typeof input === 'function') {
+				snake.setInput(input);
+				console.log('[snake-input-tessel-accel] READY');
+			} else {
+				console.log('Input-module failed to init:', input);
+			}
+		})
+	);
+
+	// Aaaand LIFTOFF! - when all modules initialized, fire up the game!
+	Promise.all(mods)
+		.then(function() {
 			console.log('ram free after init',require('os').freemem());
 			snake.start();
 
@@ -44,4 +66,4 @@ var Main = function() {
 		});
 }
 
-Main();
+main();
