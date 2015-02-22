@@ -1,3 +1,18 @@
+// Load snake lib/commons/helpers
+var S = require('./snake-lib.js');
+
+// To change default map size, use
+// > require('./snake-lib.js').resizeMap(<width>, <height>)
+// to load the snake lib.
+
+// Index helper
+var idxAt = S.idxAt,
+
+  // Turn helper
+  turnTo = S.turnTo;
+
+
+// Tessel lib
 var Tessel = require('tessel');
 
 
@@ -46,9 +61,22 @@ exports.init = function () {
         if (err) return reject(err);
 
         console.log('[ACCEL] initialized ('+xyz.map(function(ax){return ax.toFixed(1)}).join(',')+')');
-        resolve(updateAccel(xyz));
+        updateAccel(xyz);
+        resolve(exports);
       });
     });
 
   }));
 };
+
+exports.axes = function() {
+  return lastData;
+}
+
+exports.currentDir = function () {
+
+}
+
+exports.input = function (Map, w,h, headIdx,tailIdx) {
+  var dir = Map[headIdx];
+}

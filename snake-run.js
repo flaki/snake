@@ -26,10 +26,10 @@ var Map;
 var Head, Tail;
 
 // Custom gameplay renderer (optional)
-var displayRenderer = null;
+var displayRenderer = {};
 
 // Custom input source (optional)
-var inputConnector = null;
+var inputConnector = {};
 
 
 
@@ -180,6 +180,9 @@ function run(ts) {
     // TODO: Update display
     display();
 
+    // DEBUG: show accelerometer axes
+    //displayRenderer.showAxes(inputConnector.axes());
+
     lastTick += UPDATE_SPEED;
   }
 
@@ -288,7 +291,7 @@ function placeItem(itemType) {
  *  32       - wall (for creating mazes)
  */
 function display() {
-  (displayRenderer||defaultDisplay)(Map, MAP_W, MAP_H, Head, Tail);
+  (displayRenderer.display||defaultDisplay)(Map, MAP_W, MAP_H, Head, Tail);
 
   /*DEBUG: show default output too*/
   // if (displayRenderer) {
@@ -300,8 +303,8 @@ function display() {
 /** Change the game render engine/output
  *
  */
-function setDisplay(callback) {
-  displayRenderer = callback;
+function setDisplay(module) {
+  displayRenderer = module;
 }
 
 /** Default display callback
@@ -379,7 +382,7 @@ function defaultDisplay(Map, w,h, headIdx,tailIdx) {
  *  true.
  */
 function input() {
-  (inputConnector||defaultInput)(Map, MAP_W, MAP_H, Head, Tail);
+  (inputConnector.input||defaultInput)(Map, MAP_W, MAP_H, Head, Tail);
 }
 
 /** Default input connector
@@ -432,8 +435,8 @@ function defaultInput(Map, w,h, headIdx,tailIdx) {
 
 /** Set input connector
  */
-function setInput(callback) {
-  inputConnector = callback;
+function setInput(module) {
+  inputConnector = module;
 }
 
 module.exports = {
@@ -443,6 +446,5 @@ module.exports = {
   setDisplay: setDisplay,
 
   input: input,
-
-
+  setInput: setInput
 }

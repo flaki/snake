@@ -13,7 +13,7 @@ function wait(delay) {
 	}));
 }
 
-
+var dspMod, inpMod;
 
 var main = function() {
 	var snake = require('./snake-run.js');
@@ -28,13 +28,13 @@ var main = function() {
 		require('./snake-display-tessel-oled.js').init()
 
 		// Push module as an output
-		.then(function(display) {
+		.then(function(mod) {
 			// This is a render module
-			if (typeof display === 'function') {
-				snake.setDisplay(display);
+			if (typeof mod.display === 'function') {
+				snake.setDisplay(mod);
 				console.log('[snake-display-tessel-oled] READY');
 			} else {
-				console.log('Display-module failed to init:', display);
+				console.log('Display-module failed to init:', mod);
 			}
 		})
 	);
@@ -43,13 +43,13 @@ var main = function() {
 	mods.push(
 		require('./snake-input-tessel-accel.js').init()
 
-		.then(function(input) {
+		.then(function(mod) {
 			// This is a render module
-			if (typeof input === 'function') {
-				snake.setInput(input);
+			if (typeof mod.input === 'function') {
+				snake.setInput(mod);
 				console.log('[snake-input-tessel-accel] READY');
 			} else {
-				console.log('Input-module failed to init:', input);
+				console.log('Input-module failed to init:', mod);
 			}
 		})
 	);

@@ -604,6 +604,17 @@ var Display = (function() {
 		buf = (buffered ? dBuf.slice(dBufP) : new Buffer(32));
 		i = 0;
 
+		// Handle negative widths/heights
+		if (width<0) {
+			x += width;
+			width = -width;
+		}
+		if (height<0) {
+			y += height;
+			height = -height;
+		}
+
+
 		// Set clear mode color
 		if (mode === DRAW_MODE_CLEAR) {
 			// Set to erase (black color)
@@ -770,7 +781,7 @@ exports.init = function() {
 			OLED.clear();
 
 			console.log('[OLED] initialized');
-			return exports.update;
+			return exports;
 
 		// Failed to initialize
 		}).catch(function (e) {
@@ -800,7 +811,7 @@ exports.update1x1 = function(Map, w,h, headIdx,tailIdx) {
 
 var lastMem = process.memoryUsage().heapUsed;
 
-exports.update = function(Map, w,h, headIdx,tailIdx) {
+exports.display = function(Map, w,h, headIdx,tailIdx) {
 	// Buffer drawing commands in order to avoid display channel latency
 	// which would result in screen flicker.
 	if (BUFFERED) OLED.buffer();
@@ -830,3 +841,19 @@ exports.update = function(Map, w,h, headIdx,tailIdx) {
 	// Display buffer
 	if (BUFFERED) OLED.showBuffer();
 };
+
+exports.showAxes = function(xyz) {
+	if (BUFFERED) OLED.buffer();
+
+	OLED.drawRect(64-20-2,32-3, 40+4, 2+4);
+	OLED.drawRect(64-3,32-20-2, 2+4, 40+4);
+
+	OLED.clearRect(64-20-1,32-2, 40+2, 2+2);
+	OLED.clearRect(64-2,32-20-1, 2+2, 40+2);
+
+	OLED.drawRect(64,32-1, Math.round(xyz[0]*40), 2);
+
+	OLED.drawRect(64-1,32, 2, Math.round(-xyz[1]*40));
+
+	if (BUFFERED) OLED.showBuffer();
+}
