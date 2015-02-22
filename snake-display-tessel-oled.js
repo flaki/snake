@@ -534,13 +534,27 @@ var Display = (function() {
 		write(buf);
 	};
 
+	var buffered = false,
+		dBuf = new Buffer(1024),
+		dBufP;
+
+	DigoleDisplay.prototype.buffer = function(x, y, width, height) {
+		dBufP = 0;
+		buffered = true;
+	}
+	DigoleDisplay.prototype.showBuffer = function() {
+		UART.write(dBuf.splice(0,dBufP));
+		buffered = false;
+	}
+
 	// API-compatible with canvas commands
 	DigoleDisplay.prototype.fillRect = function(x, y, width, height) {
 		DigoleDisplay.prototype.fillRect(x, y, width, height, true);
 	}
 
+	rectBuffer = new Buffer(2+4);
 	DigoleDisplay.prototype.drawRect = function(x, y, width, height, mode) {
-		var buf, i;
+		var buf = rectBuffer, i;
 
 		// Must be at least 1x1 px to show
 		if (width > 1 && height > 1) {
@@ -559,12 +573,11 @@ var Display = (function() {
 
 			//console.log(x,x+width-1 ,'|', y,y+height-1);
 
-			write(buf);
+			UART.write(buf);
 
 		// 1px width/height must be special-cased
 		} else if ((width > 0 && height > 0)) {
 			if (height === width) {
-				buf = new Buffer(2+2);
 				i = 0;
 
 				buf.writeUInt8('D'.charCodeAt(), i++);
@@ -572,6 +585,10 @@ var Display = (function() {
 
 				buf.writeUInt8(x, i++);
 				buf.writeUInt8(y, i++);
+
+				// Padding
+				buf.writeUInt8(0, i++);
+				buf.writeUInt8(0, i++);
 
 				write(buf);
 
@@ -622,7 +639,7 @@ var Display = (function() {
 		buf.writeUInt8('C'.charCodeAt(), i++);
 		buf.writeUInt8(1, i++);
 
-		write(buf);
+		UART.write(buf);
 	}
 
 
