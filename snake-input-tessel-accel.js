@@ -77,6 +77,31 @@ exports.currentDir = function () {
 
 }
 
+var DZ = 0.15;
 exports.input = function (Map, w,h, headIdx,tailIdx) {
   var dir = Map[headIdx];
+
+  // Go UP
+  // Headed left/right, accel is negative on Y axis
+  if (lastData[1]>DZ) {
+    dir = (Map[headIdx]&(S.DPAD.LEFT|S.DPAD.RIGHT)) ? S.DPAD.UP : dir;
+
+  // Go DOWN
+  } else if (lastData[1]<-DZ) {
+    dir = (Map[headIdx]&(S.DPAD.LEFT|S.DPAD.RIGHT)) ? S.DPAD.DOWN : dir;
+
+  }
+
+  // Go LEFT
+  // Headed up/down, accel is negative on X axis
+  if (lastData[0]<-DZ) {
+    dir = (Map[headIdx]&(S.DPAD.UP|S.DPAD.DOWN)) ? S.DPAD.LEFT : dir;
+
+  // Go RIGHT
+  } else if (lastData[0]>DZ) {
+    dir = (Map[headIdx]&(S.DPAD.UP|S.DPAD.DOWN)) ? S.DPAD.RIGHT : dir;
+
+  }
+
+  Map[headIdx] = dir;
 }
