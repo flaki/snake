@@ -132,7 +132,7 @@ function start(settings) {
 /* Run the friggin game!
  */
 var lastTick;
-var UPDATE_SPEED = 500;
+var UPDATE_SPEED = 200;
 function run(ts) {
   var gameOver = false;
   if (!lastTick) lastTick = ts-UPDATE_SPEED;

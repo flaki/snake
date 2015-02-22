@@ -4,7 +4,7 @@ var Tessel = require('tessel');
 
 
 // Enable ES6 promises
-require('es6-promise').polyfill();;
+require('es6-promise').polyfill();
 
 // Promise-based delay helper
 function wait(delay) {
@@ -29,6 +29,8 @@ var Main = function() {
 			// This is a render module
 			if (typeof renderer === 'function') {
 				snake.setDisplay(renderer);
+			} else {
+				console.log('Renderer failed to init:', renderer);
 			}
 
 		// Aaaand LIFTOFF!

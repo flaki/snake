@@ -411,7 +411,18 @@ var Display = (function() {
 		write('DSS\x01\0');
 	};
 
-	DigoleDisplay.prototype.text = function(string,size,x,y,center) {
+	DigoleDisplay.prototype.text = function(text,size,x,y,center) {
+		var buf, i;
+
+		// Not buffered, create fallback buffer
+		buf = (buffered ? dBuf.slice(dBufP) : new Buffer(128));
+		i = 0;
+
+		// Enforce text to be a string
+		if (typeof text !== 'string') {
+			text = ""+text;
+		}
+
 		// If no size specified, use default
 		if (typeof size !== 'string') {
 			if (!isNaN(size) && !isNaN(x) && isNaN(y)) {
@@ -424,32 +435,60 @@ var Display = (function() {
 
 		// Font select
 		if (size && size in FONT) {
-			write('SF' + String.fromCharCode(FONT[size]) + '\0');
+			buf[i++] = 'S'.charCodeAt();
+			buf[i++] = 'F'.charCodeAt();
+			buf[i++] = FONT[size];
+			//buf[i++] = 0; //might not be neccessary
 		}
+
+		// TODO: make font size selection smarter, cache last used font size
+		// especially in buffered mode.
 
 		// Positioning
 		if (!isNaN(x) && !isNaN(y)) {
 			// Try to center text
 			if (center) {
 				if (size === 'tiny') {
-					x -= Math.floor(string.length / 2 * 4);
+					x -= Math.floor(text.length / 2 * 4);
 					y -= 3; // TODO: account for newlines, maybe?
 
 				} else if (size === 'small') {
-					x -= Math.floor(string.length / 2 * 6);
+					x -= Math.floor(text.length / 2 * 6);
 					y -= 5;
 
 				} else if (size === 'regular') {
-					x -= Math.floor(string.length / 2 * 8);
+					x -= Math.floor(text.length / 2 * 8);
 					y -= 6;
 				}
 			}
 
-			write('ETP' + String.fromCharCode(x)+String.fromCharCode(y) + '\0');
+			buf[i++] = 'E'.charCodeAt();
+			buf[i++] = 'T'.charCodeAt();
+			buf[i++] = 'P'.charCodeAt();
+
+			buf[i++] = x;
+			buf[i++] = y;
+
+			//buf[i++] = 0; //might not be neccessary, either
 		}
 
 		// Text
-		write('TT' + string + '\0');
+		buf[i++] = 'T'.charCodeAt();
+		buf[i++] = 'T'.charCodeAt();
+
+		i += buf.write(text, i);
+
+		buf[i++] = 0; // neccessary to mark the end of string data
+
+
+		// Buffered: update buffers content size
+		if (buffered) {
+			dBufP += i;
+
+		// No buffering: Direct write into display output
+		} else {
+			write(buf.slice(0,i));
+		}
 	};
 
 	DigoleDisplay.prototype.updateStartup = function(DATA, width, translate) {
@@ -629,7 +668,7 @@ var Display = (function() {
 
 		// No buffering: Direct write into display output
 		} else {
-			UART.write(buf.slice(0,i));
+			write(buf.slice(0,i));
 		}
 	}
 
@@ -718,9 +757,9 @@ exports.init = function() {
 			OLED.clear();
 
 			OLED.text('created by', 'tiny', 64,8, true);
+			OLED.text('@slsoftworks','small', 64, 66, true);
 
 			OLED.displayLogo({ label:'TWITTER', w: 40, h:40 }, 68, 36, true);
-			OLED.text('@slsoftworks','small', 64, 66, true);
 
 			return wait(1000);
 
@@ -738,7 +777,7 @@ exports.init = function() {
 };
 
 
-var BS = 2;
+var BS = 5;
 var BUFFERED = true;
 
 exports.update1x1 = function(Map, w,h, headIdx,tailIdx) {
@@ -759,18 +798,20 @@ exports.update1x1 = function(Map, w,h, headIdx,tailIdx) {
 var lastMem = process.memoryUsage().heapUsed;
 
 exports.update = function(Map, w,h, headIdx,tailIdx) {
-	// Memory
+	// Buffer drawing commands in order to avoid display channel latency
+	// which would result in screen flicker.
+	if (BUFFERED) OLED.buffer();
+
+	// Clear GUI/HUD
 	OLED.clearRect(0,57, 128,7);
+
+	// Memory profiling
 	OLED.text('HEAP: +'+((process.memoryUsage().heapUsed-lastMem)/1024|0)+'K', 'tiny', 0,64, false);
 	lastMem = process.memoryUsage().heapUsed;
 
 	// GUI
 	OLED.text('HEAD: ', 'tiny', 80,64, false);
 	OLED.text(headIdx, 'tiny', 100,64, false);
-
-	// Buffer drawing commands in order to avoid display channel latency
-	// which would result in screen flicker.
-	if (BUFFERED) OLED.buffer();
 
 	// Play area
 	OLED.drawRect(0,0, BS*w + 2, BS*h + 2);
