@@ -209,6 +209,8 @@ function move() {
   // If snake eats, grow (do not remove tail)
   if (Map[next] >= MAPOBJ.FOOD) {
     // TODO: bonus handling
+    // Show feeding by led blinking
+    yum();
 
     // Plant new food item on the map
     placeItem(MAPOBJ.FOOD);
@@ -244,6 +246,18 @@ function move() {
 
   // No game over (yet! :D)
   return false;
+}
+
+/* YUM! */
+var tessel = require('tessel');
+function yum() {
+  var ctr = 4;
+  var blinky = function() {
+    tessel.ports.GPIO.pin['G3'].output(ctr % 2);
+      if (--ctr > 0) setTimeout(blinky,100);
+  }
+
+  blinky();
 }
 
 /* Place Item randomly on the gameplay map

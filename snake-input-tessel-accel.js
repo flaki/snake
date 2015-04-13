@@ -42,7 +42,7 @@ function updateAccel (xyz) {
  */
 exports.init = function () {
   console.log('[ACCEL] sensor starting up...');
-  ACCEL = require('accel-mma84').use(Tessel.port['B']);
+  ACCEL = require('accel-mma84').use(Tessel.port['C']);
 
   return (new Promise(function (resolve, reject) {
 
